@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["0.0.0.0", "deploy-django-igws.onrender.com"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
