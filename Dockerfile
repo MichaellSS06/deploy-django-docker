@@ -27,14 +27,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy the project files into the working directory
 COPY . .
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 # Open the port 8000
 EXPOSE 8000
 
 # Comandos para preparar la app (equivalente a build.sh)
-RUN python manage.py collectstatic --no-input \
-    && python manage.py migrate
+# RUN python manage.py collectstatic --no-input \
+#     && python manage.py migrate
 
-
+ENTRYPOINT ["/entrypoint.sh"]
 # Comando por defecto para ejecutar el contenedor
 CMD ["gunicorn", "mysite.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--workers", "4", "--bind", "0.0.0.0:8000"]
 # Run the application with Gunicorn, a WSGI HTTP server for Python
