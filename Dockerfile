@@ -2,7 +2,7 @@
 FROM python:3.13-rc-slim
 
 # Set the working directory in the container
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Set environment variables
 
@@ -14,8 +14,15 @@ ENV PYTHONUNBUFFERED 1
 # Install dependencies
 COPY requirements.txt .
 
+# Instala dependencias del sistema necesarias y luego las de Python
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apt-get purge -y --auto-remove build-essential
+
 # Upgrade pip and prevents keeping the cache
-RUN pip install -U pip && pip install --no-cache-dir -r requirements.txt
+# RUN pip install -U pip && pip install --no-cache-dir -r requirements.txt
 
 # Copy the project files into the working directory
 COPY . .
@@ -23,5 +30,12 @@ COPY . .
 # Open the port 8000
 EXPOSE 8000
 
+# Comandos para preparar la app (equivalente a build.sh)
+RUN python manage.py collectstatic --no-input \
+    && python manage.py migrate
+
+
+# Comando por defecto para ejecutar el contenedor
+CMD ["gunicorn", "mysite.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--workers", "4", "--bind", "0.0.0.0:8000"]
 # Run the application with Gunicorn, a WSGI HTTP server for Python
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
+# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi:application"]
